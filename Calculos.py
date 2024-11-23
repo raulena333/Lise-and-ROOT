@@ -5,8 +5,6 @@ import matplotlib.pyplot as plt
 R_G = 60  # Radius of the sphere (tangential point) in mm
 r_b = 1.5  # Radius of the beam at the position of the target in mm
 beta = 30  # Inclination angle of target in degrees
-
-# Convert beta to radians once for reuse
 beta_rad = np.deg2rad(beta)
 
 # Define spherical coordinates for telescopes A, B, C, D, E, F
@@ -97,12 +95,26 @@ def calculate_for_telescope(theta, phi):
     normalized_dot = normalized_dot_product_PPi_with_k(P_Pi, modulus_PPi)
     dispersion_angle = calculate_dispersion_angle(normalized_dot)
     
-    return normalized_dot, np.degrees(dispersion_angle)
+    return np.degrees(dispersion_angle)
+
+def calculate_dispersion_range(theta, phi, r_b, R_G):
+    """
+    Calcular el rango de dispersión angular para un telescopio con haz de extensión.
+    """
+    # Calcular la distancia d desde el objetivo hasta el telescopio
+    # La distancia d es la distancia entre el centro del objetivo (R_G) y la posición del telescopio
+    d = np.linalg.norm(calculate_PPi(theta, phi))
+    
+    # Calcular el rango de dispersión angular, usando la extensión del haz
+    delta_theta = r_b / d  # Asumimos que el ángulo de dispersión es pequeño
+    return np.degrees(delta_theta)  # Convertimos de radianes a grados
 
 # Calculate for telescopes A and B
 for telescope, coords in telescopes.items():
     theta, phi = coords['theta'], coords['phi']
-    normalized_dot, dispersion_angle = calculate_for_telescope(theta, phi)
+    dispersion_range = calculate_dispersion_range(theta, phi, r_b, R_G)
+    dispersion_angle = calculate_for_telescope(theta, phi)
     print(f"Telescope {telescope}:")
-    print(f"  Normalized dot product: {normalized_dot}")
-    print(f"  Dispersion angle: {dispersion_angle} degrees")
+    print(f"Angles: ({theta},{phi})")
+    print(f"  Dispersion angle: {dispersion_angle:.4}, theta_min = {(dispersion_angle - dispersion_range):.7} degrees, theta_max = {(dispersion_angle + dispersion_range):.7} degrees")
+
